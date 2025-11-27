@@ -1,0 +1,50 @@
+body {
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 0;
+background: #f2f2f2;
+}
+
+
+.navbar {
+background: #333;
+color: #fff;
+padding: 1rem;
+text-align: center;
+font-size: 1.4rem;
+}
+
+
+.container {
+padding: 2rem;
+}
+
+
+.card {
+background: #fff;
+padding: 1rem;
+margin-bottom: 2rem;
+border-radius: 8px;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+
+.card input, .card select {
+padding: 8px;
+margin-right: 10px;
+}
+
+
+.card button {
+padding: 8px 14px;
+background: #007bff;
+border: none;
+color: #fff;
+border-radius: 5px;
+cursor: pointer;
+}
+
+
+.card button:hover {
+background: #0056b3;
+}
