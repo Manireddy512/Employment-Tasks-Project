@@ -1,19 +1,23 @@
-const { sequelize, Employee, Task } = require('./models');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
-(async () => {
-  try {
-    await sequelize.sync({ force: true });
+async function main() {
+  await prisma.task.deleteMany({});
+  await prisma.employee.deleteMany({});
 
-    const alice = await Employee.create({ name: 'Alice Johnson', email: 'alice@example.com', role: 'Developer' });
-    const bob = await Employee.create({ name: 'Bob Singh', email: 'bob@example.com', role: 'Designer' });
+  const mani = await prisma.employee.create({ data: { name: 'Mani Kanta Reddy', role: 'Intern' } });
+  const alice = await prisma.employee.create({ data: { name: 'Alice Johnson', role: 'Manager' } });
+  const bob = await prisma.employee.create({ data: { name: 'Bob Smith', role: 'Developer' } });
 
-    await Task.create({ title: 'Build login page', description: 'Create login UI and validation', status: 'inprogress', employeeId: alice.id });
-    await Task.create({ title: 'Design logo', description: 'Produce logo variations', status: 'todo', employeeId: bob.id });
+  await prisma.task.createMany({
+    data: [
+      { title: 'Know about company', employeeId: mani.id, status: 'Completed' },
+      { title: 'Implement login feature', employeeId: bob.id, status: 'Pending' },
+      { title: 'Prepare project report', employeeId: alice.id, status: 'In Progress' },
+    ],
+  });
 
-    console.log('Database seeded successfully');
-    process.exit(0);
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
-  }
-})();
+  console.log('Database seeded successfully!');
+}
+
+main().catch(console.error).finally(() => prisma.$disconnect());

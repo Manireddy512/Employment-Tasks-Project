@@ -1,62 +1,64 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../api';
 
+function TaskList() {
+  const [tasks, setTasks] = useState([]);
+  const [employees, setEmployees] = useState([]);
 
-export default function TaskList() {
-const [tasks, setTasks] = useState([]);
-const [title, setTitle] = useState('');
-const [employeeId, setEmployeeId] = useState('');
-const [employees, setEmployees] = useState([]);
+  useEffect(() => {
+    fetchTasks();
+    fetchEmployees();
+  }, []);
 
+  const fetchTasks = async () => {
+    const res = await API.get('/tasks');
+    setTasks(res.data);
+  };
 
-const fetchData = async () => {
-const t = await API.get('/tasks');
-const e = await API.get('/employees');
-setTasks(t.data);
-setEmployees(e.data);
-};
+  const fetchEmployees = async () => {
+    const res = await API.get('/employees');
+    setEmployees(res.data);
+  };
 
+  const updateTask = async (id, field, value) => {
+    await API.patch(`/tasks/${id}`, { [field]: value });
+    fetchTasks();
+  };
 
-const addTask = async () => {
-if (!title || !employeeId) return;
-await API.post('/tasks', { title, employee_id: employeeId });
-setTitle('');
-setEmployeeId('');
-fetchData();
-};
-
-
-useEffect(() => {
-fetchData();
-}, []);
-
-
-return (
-<div className="card">
-<input
-type="text"
-placeholder="Task title"
-value={title}
-onChange={(e) => setTitle(e.target.value)}
-/>
-
-
-<select value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
-<option value="">Assign to employee</option>
-{employees.map((e) => (
-<option key={e.id} value={e.id}>{e.name}</option>
-))}
-</select>
-
-
-<button onClick={addTask}>Add Task</button>
-
-
-<ul>
-{tasks.map((t) => (
-<li key={t.id}>{t.title} — Assigned to Employee #{t.employee_id}</li>
-))}
-</ul>
-</div>
-);
+  return (
+    <div>
+      <h2>Tasks</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Change Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map(task => (
+            <tr key={task.id}>
+              <td>{task.title}</td>
+              <td>{task.assignedTo?.name || 'Unassigned'}</td>
+              <td>{task.status}</td>
+              <td>
+                <select
+                  value={task.status}
+                  onChange={e => updateTask(task.id, 'status', e.target.value)}
+                >
+                  <option>Pending</option>
+                  <option>In Progress</option>
+                  <option>Completed</option>
+                </select>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
+
+export default TaskList;

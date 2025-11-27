@@ -1,41 +1,46 @@
 const express = require('express');
 const router = express.Router();
-const { Task } = require('../models');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
+// Get all tasks
 router.get('/', async (req, res) => {
-  const where = {};
-  if (req.query.employeeId) where.employeeId = req.query.employeeId;
-  const tasks = await Task.findAll({ where });
+  const tasks = await prisma.task.findMany({ include: { assignedTo: true } });
   res.json(tasks);
 });
 
-router.get('/:id', async (req, res) => {
-  const task = await Task.findByPk(req.params.id);
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-  res.json(task);
-});
-
+// Create task
 router.post('/', async (req, res) => {
+  const { title, assignedTo, status } = req.body;
   try {
-    const task = await Task.create(req.body);
-    res.status(201).json(task);
+    const task = await prisma.task.create({
+      data: {
+        title,
+        employeeId: assignedTo || null,
+        status: status || 'Pending',
+      },
+    });
+    res.json(task);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-router.put('/:id', async (req, res) => {
-  const task = await Task.findByPk(req.params.id);
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-  await task.update(req.body);
-  res.json(task);
-});
-
-router.delete('/:id', async (req, res) => {
-  const task = await Task.findByPk(req.params.id);
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-  await task.destroy();
-  res.json({ success: true });
+// Update task
+router.patch('/:id', async (req, res) => {
+  const { assignedTo, status } = req.body;
+  try {
+    const updatedTask = await prisma.task.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        employeeId: assignedTo,
+        status,
+      },
+    });
+    res.json(updatedTask);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;
